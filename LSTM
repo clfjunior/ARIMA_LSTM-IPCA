@@ -49,7 +49,7 @@ def main():
     train, test = split_data(series.values)
 
     # Ajustar o modelo LSTM
-    lstm_model = fit_lstm(train, epochs=100, neurons=50)
+    lstm_model = fit_lstm(train, epochs=1, neurons=500)
 
     # Previsões de teste
     test_predictions = [forecast_lstm(lstm_model, np.array([test[i]])) for i in range(len(test))]
