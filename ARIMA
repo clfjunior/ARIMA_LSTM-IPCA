@@ -58,7 +58,7 @@ if __name__ == "__main__":
         predictions = []
 
         # Parâmetros do ARIMA (ajuste conforme necessário)
-        p, d, q = 5, 1, 0  # Exemplo de ordem do modelo
+        p, d, q = 1, 1, 0  # Exemplo de ordem do modelo
 
         # Loop para previsão
         for t in range(len(test)):
