@@ -1,0 +1,58 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from datetime import timedelta
+
+use_features = ['valores']
+df = pd.read_csv('C:/Users/cezio/Downloads/ipeadata[06-01-2025-02-01].csv', index_col=1)
+df.index = pd.to_datetime(df.index)
+
+# Verificar e renomear a coluna, se necessário
+if 'Data;valores' in df.columns:
+    df.rename(columns={'Data;valores': 'valores'}, inplace=True)
+
+# Verificar se a coluna 'valores' agora está presente
+if 'valores' not in df.columns:
+    raise KeyError(f"A coluna 'valores' não está presente no DataFrame. Colunas disponíveis: {df.columns.tolist()}")
+
+# Garantir que a coluna 'valores' é do tipo str antes de realizar substituições
+df['valores'] = df['valores'].astype(str)
+
+# Remover os caracteres indesejados e converter a coluna para numérico
+# Substituir ';' por '.' e remover pontos adicionais
+df['valores'] = (
+    df['valores']
+    .str.replace(';', '.', regex=False)
+    .str.replace('.', '', regex=False)
+    .apply(lambda x: float(x[:-2] + '.' + x[-2:]))
+)
+
+# Selecionar a amostra
+sample = df['valores'][:1000]
+
+# Executar o teste ADF (teste de Raiz Unitária)
+adf, p, usedlags, nobs, cvs, aic = sm.tsa.stattools.adfuller(sample)
+
+# Exibir os resultados do teste ADF
+print(f"ADF: {adf}\np-value: {p}\nNumber of observations: {nobs}\nCritical values: {cvs}\nAIC: {aic}")
+
+pacf = sm.tsa.stattools.pacf(df[use_features], nlags = 30)
+
+T = len(df[use_features])
+sig_test = lambda tau_h: np.abs(tau_h) > 2.58/np.sqrt(T)
+
+#Determinação da ordem do AR
+
+for i in range (len(pacf)):
+    if sig_test(pacf[i]) == False:
+                n_steps = i - 1
+                print('n-steps set to', n_steps)
+                break
+
+
+plt.plot(pacf, label = 'pacf')
+plt.plot([2.58/np.sqrt(T)] * 30, label ='99% confidence interval (upper)')
+plt.plot([-2.58/np.sqrt(T)] * 30, label ='99% confidence interval (lower)')
+plt.xlabel('number of lags')
+plt.legend(); 
